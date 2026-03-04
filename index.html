@@ -623,7 +623,10 @@ footer p{color:var(--muted);font-size:.76rem;}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
+emailjs.init('ukq1DLePyy6TyDTmF');
+
 // ╔══════════════════════════════════════════════════════╗
 // ║           ⚙️  YOUR SCHEDULE CONFIGURATION           ║
 // ║  Edit this section to control your availability     ║
@@ -760,12 +763,23 @@ async function submitBook() {
   btn.disabled = true; btn.textContent = 'Confirming your slot...';
   const ds = selDate.toLocaleDateString('en-PK', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   try {
+    // Send to Formspree (your copy)
     await fetch('https://formspree.io/f/mdalqkej', {
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify({name, email, phone, service, message: msg, booking_date: ds, booking_time: selTime, type:'BOOKING'})
     });
-  } catch(e) {}
+    // Send auto-reply email to client via EmailJS
+    await emailjs.send('service_pbvt2kj', 'template_x3wtxfo', {
+      to_name: name,
+      to_email: email,
+      from_name: name,       // client ka naam From mein aayega
+      booking_date: ds,
+      booking_time: selTime,
+      phone: phone,
+      service: service || 'Not specified'
+    });
+  } catch(e) { console.log('Email error:', e); }
   document.getElementById('ty-name').textContent = name;
   document.getElementById('ty-date').textContent = ds;
   document.getElementById('ty-time').textContent = selTime + ' PKT';
